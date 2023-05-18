@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
-const {db: {host, port, name}} = require('../configs/config.mongodb')
+const {
+  db: { host, port, name },
+} = require('../configs/config.mongodb');
 const mongoString = `mongodb://${host}:${port}/${name}`;
 const { countConnect } = require('../helpers/check.connect');
 
@@ -20,7 +22,7 @@ class Database {
       .connect(mongoString, {
         maxPoolSize: 50,
       })
-      .then((_) => console.log(`MongoDB Connected Success! 123`, countConnect()))
+      .then((_) => console.log(`MongoDB Connected Success!`, mongoString))
       .catch((err) => console.log('Error Connect!'));
   }
 
