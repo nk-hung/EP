@@ -1,33 +1,28 @@
 const { BadRequestError } = require('../core/error.response');
-const { product, clothing, electronics } = require('../models/product.model');
+const {
+  product,
+  clothing,
+  electronics,
+  furnitures,
+} = require('../models/product.model');
 
 class ProductFactory {
+  // provides an interface for creating objects in a super-class
+  // use Strategy pattern de tuan thu tinh Close/Open principle
+
+  static productRegister = {};
+
+  static registerProductType(type, classRef) {
+    ProductFactory.productRegister[type] = classRef;
+  }
+
   static async createProduct(type, payload) {
-    switch (type) {
-      case 'Clothing':
-        return new Clothing(payload).createProduct();
-      case 'Electronics':
-        return new Electronics(payload).createProduct();
-      default:
-        throw new BadRequestError('Invalid Type ::', +type);
-    }
+    const productClass = ProductFactory.productRegister(type);
+    if (!productClass) throw new BadRequestError(`Invaild Type ::: ${type}`);
+
+    return new productClass(payload).createProduct();
   }
 }
-
-/*
-    product_name: { type: String, required: true },
-    product_thumb: { type: String, required: true },
-    product_price: { type: Number, required: true },
-    product_description: { type: String },
-    product_quantity: { type: Number, required: true },
-    product_type: {
-      type: String,
-      required: true,
-      enum: ['Electronics', 'Clothing', 'Furnitures'],
-    },
-    product_shop: { type: Schema.Types.ObjectId, ref: 'Shop' },
-    product_attributes: { type: Schema.Types.Mixed, required: true },
-     */
 
 // define base class
 class Product {
@@ -59,6 +54,7 @@ class Product {
 
 // define sub-class
 class Clothing extends Product {
+  // but allow subclass to after the type of object that will be created
   async createProduct() {
     const newClothing = await clothing.create({
       ...this.product_attributes,
@@ -94,5 +90,29 @@ class Electronics extends Product {
     return newElectronic;
   }
 }
+
+class Furnitures extends Product {
+  static async createProduct() {
+    const newFurnitures = await furnitures.create({
+      ...this.product_attributes,
+      product_shop: this.product_shop,
+    });
+    if (!newFurnitures)
+      throw new BadRequestError('create new Furnitures error');
+
+    const newProduct = await super.createProduct(newFurnitures._id);
+    if (!newProduct) {
+      await furnitures.deleteOne({ _id: newFurnitures._id });
+      throw new BadRequestError('create new Product error');
+    }
+
+    return newFurnitures;
+  }
+}
+// register product type
+
+ProductFactory.registerProductType('Clothing', Clothing);
+ProductFactory.registerProductType('Electronics', Electronics);
+ProductFactory.registerProductType('Furniture', Furnitures);
 
 module.exports = ProductFactory;
