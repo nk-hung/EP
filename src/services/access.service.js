@@ -3,10 +3,15 @@ const crypto = require('crypto');
 
 const shopModel = require('../models/shop.model');
 const KeyTokenService = require('./keyToken.service');
-const { createTokensPair } = require('../auth/authUtils');
+const { createTokensPair, verifyJWT } = require('../auth/authUtils');
 const { getInfoData, generateToken } = require('../utils');
-const { BadRequestError, AuthFailureError } = require('../core/error.response');
+const {
+  BadRequestError,
+  AuthFailureError,
+  ForbiddenError,
+} = require('../core/error.response');
 const { findByEmail } = require('./shop.service');
+const { NotFoundError } = require('../core/error.response');
 
 const RoleShop = {
   SHOP: 'SHOP',
@@ -17,10 +22,48 @@ const RoleShop = {
 };
 
 class AccessService {
+  static handlerRefreshToken = async ({ keyStore, user, refreshToken }) => {
+    const { userId, email } = user;
+
+    if (keyStore.refreshTokenUsed.includes(refreshToken)) {
+      await KeyTokenService.removeKeyByUserId(userId);
+      throw new ForbiddenError('Something wrong happend! Pls login!');
+    }
+
+    if (keyStore.refreshToken !== refreshToken) {
+      throw new AuthFailureError('Shop not registered!');
+    }
+
+    const foundShop = await findByEmail({ email });
+
+    if (!foundShop) throw new AuthFailureError('Wrong email');
+
+    // cap tokens moi
+    const tokens = await createTokensPair(
+      { userId, email },
+      keyStore.publicKey,
+      keyStore.privateKey
+    );
+    // dua refreshToken nay vao dien da su dungj
+    await keyStore.updateOne({
+      $set: {
+        refreshToken: tokens.refreshToken,
+      },
+      $addToSet: {
+        refreshTokenUsed: refreshToken,
+      },
+    });
+
+    return {
+      user: { userId, email },
+      tokens,
+    };
+  };
+
   static logout = async (keyStore) => {
-    console.log('Key::', keyStore);
     return await KeyTokenService.removeKeyById(keyStore._id);
   };
+
   /*  
 	1 - check exist email
 	2 - match password
@@ -28,7 +71,6 @@ class AccessService {
 	4 - generate tokens 
 	5 - get data return
   */
-
   static login = async ({ email, password, accessToken = null }) => {
     //1. check exist email
     const foundShop = await findByEmail({ email });

@@ -3,11 +3,13 @@ const asyncHandler = require('../helpers/asyncHandler');
 const { BadRequestError, NotFoundError } = require('../core/error.response');
 const { AuthFailureError } = require('../core/error.response');
 const { findByUserId } = require('../services/keyToken.service');
+const { keys } = require('lodash');
 
 const HEADERS = {
   API_KEY: 'x-api-key',
   CLIENT_ID: 'x-client-id',
   AUTHORIZATION: 'authorization',
+  REFRESHTOKEN: 'x-rtoken',
 };
 
 const createTokensPair = async (payload, publicKey, privateKey) => {
@@ -55,6 +57,18 @@ const authentication = asyncHandler(async (req, res, next) => {
   if (!keyStore) throw new NotFoundError('Not found key');
 
   // 3.
+  if (req.headers[HEADERS.REFRESHTOKEN]) {
+    const refreshToken = req.headers[HEADERS.REFRESHTOKEN];
+    try {
+      const decode = JWT.decode(refreshToken, keyStore.privateKey);
+      if (userId !== decode.userId) throw new AuthFailureError('Invalid User');
+      req.keyStore = keyStore;
+      (req.user = decode), (req.refreshToken = refreshToken);
+      return next();
+    } catch (error) {
+      throw error;
+    }
+  }
   const accessToken = req.headers[HEADERS.AUTHORIZATION];
   if (!accessToken) throw new AuthFailureError('Invalid accessToken');
 
@@ -68,7 +82,11 @@ const authentication = asyncHandler(async (req, res, next) => {
   }
 });
 
+const verifyJWT = async (token, keySecret) => {
+  return await JWT.decode(token, keySecret);
+};
 module.exports = {
   createTokensPair,
   authentication,
+  verifyJWT,
 };

@@ -7,9 +7,7 @@ const HEADERS = {
 
 const apiKey = async (req, res, next) => {
   try {
-    console.log('headers::', req.headers);
     const key = req.headers[HEADERS.API_KEY]?.toString();
-    console.log('key::', key);
     if (!key) {
       return res.status(403).json({
         message: 'Forbidden Error',

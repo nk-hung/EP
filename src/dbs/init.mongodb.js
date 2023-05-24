@@ -23,7 +23,7 @@ class Database {
         maxPoolSize: 50,
       })
       .then((_) => console.log(`MongoDB Connected Success!`, mongoString))
-      .catch((err) => console.log('Error Connect!'));
+      .catch((err) => console.log('Error Connect!', err));
   }
 
   // Khoi tao instance dung static
