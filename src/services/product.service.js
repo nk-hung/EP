@@ -5,6 +5,15 @@ const {
   electronics,
   furnitures,
 } = require('../models/product.model');
+const {
+  findAllDraftForShop,
+  publishProductByShop,
+  findAllPublishForShop,
+  unPublishProductByShop,
+  searchProductByUser,
+  findAllProducts,
+  findProduct,
+} = require('../models/repositories/product.repo');
 
 class ProductFactory {
   // provides an interface for creating objects in a super-class
@@ -17,10 +26,51 @@ class ProductFactory {
   }
 
   static async createProduct(type, payload) {
-    const productClass = ProductFactory.productRegister(type);
+    const productClass = ProductFactory.productRegister[type];
     if (!productClass) throw new BadRequestError(`Invaild Type ::: ${type}`);
 
     return new productClass(payload).createProduct();
+  }
+
+  static async publishProductByShop({ product_shop, product_id }) {
+    return await publishProductByShop({ product_shop, product_id });
+  }
+
+  static async unPublishProductByShop({ product_shop, product_id }) {
+    return await unPublishProductByShop({ product_shop, product_id });
+  }
+  // query
+  static async findAllDraftForShop({ product_shop, limit = 50, skip = 0 }) {
+    const query = { product_shop, isDraft: true };
+    return await findAllDraftForShop({ query, limit, skip });
+  }
+
+  static async getAllPublishForShop({ product_shop, limit = 50, skip = 0 }) {
+    const query = { product_shop, isPublished: true };
+    return await findAllPublishForShop({ query, limit, skip });
+  }
+
+  static async getListSearchProduct({ keySearch }) {
+    return await searchProductByUser({ keySearch });
+  }
+
+  static async findAllProducts({
+    limit = 50,
+    page = 1,
+    sort = 'ctime',
+    filter = { isPublished: true },
+  }) {
+    return await findAllProducts({
+      limit,
+      page,
+      filter,
+      sort,
+      select: ['product_name', 'product_description', 'product_thumb'],
+    });
+  }
+
+  static async findProduct({ product_id }) {
+    return await findProduct({ product_id, unSelect: ['__v'] });
   }
 }
 
@@ -73,7 +123,7 @@ class Clothing extends Product {
 }
 
 class Electronics extends Product {
-  static async createProduct() {
+  async createProduct() {
     const newElectronic = await electronics.create({
       ...this.product_attributes,
       product_shop: this.product_shop,
@@ -87,12 +137,13 @@ class Electronics extends Product {
       throw new BadRequestError('create new Product error');
     }
 
-    return newElectronic;
+    return newProduct;
   }
 }
 
 class Furnitures extends Product {
-  static async createProduct() {
+  async createProduct() {
+    console.log(`this:::`, this);
     const newFurnitures = await furnitures.create({
       ...this.product_attributes,
       product_shop: this.product_shop,
@@ -106,7 +157,7 @@ class Furnitures extends Product {
       throw new BadRequestError('create new Product error');
     }
 
-    return newFurnitures;
+    return newProduct;
   }
 }
 // register product type
