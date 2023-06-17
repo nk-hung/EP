@@ -13,7 +13,9 @@ const {
   searchProductByUser,
   findAllProducts,
   findProduct,
+  updateProductById,
 } = require('../models/repositories/product.repo');
+const { removeUndefinedObject, updateNestedObjectParser } = require('../utils');
 
 class ProductFactory {
   // provides an interface for creating objects in a super-class
@@ -30,6 +32,13 @@ class ProductFactory {
     if (!productClass) throw new BadRequestError(`Invaild Type ::: ${type}`);
 
     return new productClass(payload).createProduct();
+  }
+
+  static async updateProduct(type, productId, payload) {
+    const productClass = ProductFactory.productRegister[type];
+    if (!productClass) throw new BadRequestError(`Invalid Type::: ${type}`);
+
+    return new productClass(payload).updateProduct(productId);
   }
 
   static async publishProductByShop({ product_shop, product_id }) {
@@ -100,6 +109,11 @@ class Product {
   async createProduct(productId) {
     return await product.create({ ...this, _id: productId });
   }
+
+  // update product
+  async updateProduct(productId, bodyUpdate) {
+    return await updateProductById({ productId, bodyUpdate, model: product });
+  }
 }
 
 // define sub-class
@@ -119,6 +133,23 @@ class Clothing extends Product {
     }
 
     return newProduct;
+  }
+
+  async updateProduct(productId) {
+    const objectParams = this;
+
+    if (objectParams.product_attributes) {
+      // update clothing
+      await updateProductById({
+        productId,
+        bodyUpdate: objectParams,
+        model: clothing,
+      });
+    }
+
+    // update product
+    const updateProduct = super.updateProduct(productId, objectParams);
+    return updateProduct;
   }
 }
 
@@ -158,6 +189,25 @@ class Furnitures extends Product {
     }
 
     return newProduct;
+  }
+
+  async updateProduct(productId) {
+    const objectParams = removeUndefinedObject(this);
+    if (objectParams.product_attributes) {
+      // update child
+      await updateProductById({
+        productId,
+        bodyUpdate: updateNestedObjectParser(objectParams.product_attributes),
+        model: furnitures,
+      });
+    }
+
+    const updateProduct = await super.updateProduct(
+      productId,
+      updateNestedObjectParser(objectParams)
+    );
+
+    return updateProduct;
   }
 }
 // register product type
