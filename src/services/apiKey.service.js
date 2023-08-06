@@ -3,14 +3,15 @@ const crypto = require('node:crypto');
 const { generateToken } = require('../utils');
 
 const findByKey = async (key) => {
-  // const newKey = await apiKeyModel.create({
-  //   key: generateToken(),
-  //   permissions: ['0000'],
-  // });
-  const objKey = await apiKeyModel.findOne({ key, status: true }).lean();
-  return objKey;
+    // const newKey = await apiKeyModel.create({
+    //     key: generateToken(),
+    //     permissions: ['0000'],
+    // });
+    const objKey = await apiKeyModel.findOne({ key, status: true }).lean();
+    console.log('key::', objKey);
+    return objKey;
 };
 
 module.exports = {
-  findByKey,
+    findByKey,
 };
