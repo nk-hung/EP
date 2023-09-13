@@ -119,7 +119,7 @@ class Product {
             });
         }
 
-        return newProduct;
+        return newProduct   ;
     }
 
     // update product
