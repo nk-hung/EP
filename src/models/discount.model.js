@@ -30,3 +30,5 @@ const discountSchema = new Schema(
 );
 
 module.exports =  model(DOCUMENT_NAME, discountSchema)
+
+// Note: không nên thêm trường để đánh dấu là xóa hay chưa vì mất thêm việc đánh index
