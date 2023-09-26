@@ -115,6 +115,10 @@ const unPublishProductByShop = async ({ product_id, product_shop }) => {
   return modifiedCount;
 };
 
+const getProductById = async ({productId}) => {
+  return await product.findOne({_id: Types.ObjectId(productId)}).lean();
+}
+
 module.exports = {
   findAllDraftForShop,
   findAllPublishForShop,
@@ -124,4 +128,5 @@ module.exports = {
   findAllProducts,
   findProduct,
   updateProductById,
+  getProductById
 };
