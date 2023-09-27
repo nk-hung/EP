@@ -28,13 +28,14 @@ class ProductController {
   };
 
   publishProductByShop = async (req, res, next) => {
+    console.log('req', req.user);
     new SuccessResponse({
       message: 'published product success!',
-      metadata: new ProductFactory.publishProductByShop({
+      metadata: await ProductFactory.publishProductByShop({
         product_id: req.params.id,
         product_shop: req.user.usesId,
       }),
-    });
+    }).send(res);
   };
   /**
    * @desc  Get all drafts

@@ -50,7 +50,7 @@ class CartService {
         }
 
         // neu co cart roi nhung chua co san pham?
-        if (userCart.cart_products.length) {
+        if (!userCart.cart_products.length) {
             userCart.cart_products = [product]
             return await userCart.save()
         }
@@ -73,10 +73,11 @@ class CartService {
         ]
     */
 
-    static async addToCartV2({ userId, product = []}) {
-        const {productId, quantity, old_quantity} = product.shop_order_ids[0]?.item_products[0]
+    static async addToCartV2({ userId, shop_order_ids = []}) {
+        console.log({ userId, shop_order_ids })
+        const {productId, quantity, old_quantity} = shop_order_ids[0]?.item_products[0]
         // check product
-        const foundProduct = await getProductById({productId}) 
+        const foundProduct = await getProductById({productId});
         if(!foundProduct) throw new NotFoundError('Product not exist');
         // compare
         if (foundProduct.product_shop.toString() !== shop_order_ids[0]?.shopId) {
@@ -95,6 +96,24 @@ class CartService {
             }
         })
     }
+
+    static async deleteUserCart({ userId, productId }) {
+        const query = { cart_userId: userId, cart_state: 'active'},
+        updateSet = {
+            $pull: {
+                cart_products: {
+                    productId
+                }
+            }
+        }
+        const deleteCart = await cart.updateOne(query, updateSet)
+        return deleteCart
+    }
+
+    static async getListUserCart({ userId }) {
+        return await cart.findOne({ cart_userId: userId }).select().lean()
+    }
+
 }
 
 module.exports = CartService

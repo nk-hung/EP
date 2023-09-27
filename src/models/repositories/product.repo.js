@@ -7,7 +7,11 @@ const {
   furnitures,
 } = require('../product.model');
 const { query } = require('express');
-const { getSelectData, unGetSelectData } = require('../../utils');
+const {
+  getSelectData,
+  getUnSelectData,
+  convertStringToObjectId,
+} = require('../../utils');
 
 const findAllDraftForShop = async ({ query, limit = 50, skip = 0 }) => {
   return await product
@@ -68,7 +72,7 @@ const findAllProducts = async ({ limit, page, filter, sort, select }) => {
 const findProduct = async ({ product_id, unSelect }) => {
   const result = await product
     .findOne({ _id: product_id })
-    .select(unGetSelectData(unSelect))
+    .select(getUnSelectData(unSelect))
     .lean();
 
   return result;
@@ -115,9 +119,26 @@ const unPublishProductByShop = async ({ product_id, product_shop }) => {
   return modifiedCount;
 };
 
-const getProductById = async ({productId}) => {
-  return await product.findOne({_id: Types.ObjectId(productId)}).lean();
-}
+const getProductById = async ({ productId }) => {
+  return await product
+    .findOne({ _id: convertStringToObjectId(productId) })
+    .lean();
+};
+
+const checkProductByServer = async (products) => {
+  return await Promise.all(
+    products.map(async (product) => {
+      const foundProduct = await getProductById(product.productId);
+      if (foundProduct) {
+        return {
+          price: foundProduct.price,
+          quantity: foundProduct.quantity,
+          productId: product.productId,
+        };
+      }
+    })
+  );
+};
 
 module.exports = {
   findAllDraftForShop,
@@ -128,5 +149,6 @@ module.exports = {
   findAllProducts,
   findProduct,
   updateProductById,
-  getProductById
+  getProductById,
+  checkProductByServer,
 };
