@@ -119,7 +119,7 @@ const unPublishProductByShop = async ({ product_id, product_shop }) => {
   return modifiedCount;
 };
 
-const getProductById = async ({ productId }) => {
+const getProductById = async (productId) => {
   return await product
     .findOne({ _id: convertStringToObjectId(productId) })
     .lean();
@@ -131,8 +131,8 @@ const checkProductByServer = async (products) => {
       const foundProduct = await getProductById(product.productId);
       if (foundProduct) {
         return {
-          price: foundProduct.price,
-          quantity: foundProduct.quantity,
+          price: foundProduct.product_price,
+          quantity: product.quantity,
           productId: product.productId,
         };
       }
