@@ -131,10 +131,39 @@ class CheckoutService {
     // TH: inset thanh cong => remove product co trong cart
     if (newOrder) {
       
-      
     }
     return newOrder;
   }
+
+  /*
+    1> Query Orders [Users] 
+  */
+  static async getOrderByUser() {
+
+  }
+
+  /*
+    1> Query Order Using Id [Users]
+  */
+  static async getOneOrderByUser() {
+
+  }
+
+  /*
+    1> Cancel Order [Users]
+  */
+  static async cancelOrderByUser() {
+
+  }
+
+  /*
+    1> Update Order Status [Shop | Admin] 
+  */
+  static async updateOrderStatusByShop() {
+
+  }
+
+  
 }
 
 module.exports = CheckoutService;
