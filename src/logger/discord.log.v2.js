@@ -20,7 +20,7 @@ class LoggerService {
             console.log(`Logged ::: ${this.client.user.tag}`)
         })
 
-        this.client.login(TOKEN_DISCORD);
+        this.client.login(TOKEN_DISCORD || 'MTE1OTM1NDExMDkxMTQ1NTMwMw.GTR4-K.lh1CoDXSMtJVqx_7bQvVzmQ67lPzO6W2atZcBw');
 
     }
 
