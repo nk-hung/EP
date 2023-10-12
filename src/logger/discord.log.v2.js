@@ -2,7 +2,7 @@
 
 const { Client, GatewayIntentBits } = require("discord.js")
 
-const { TOKEN_DISCORD } = process.env
+const { DISCORD_TOKEN } = process.env
 class LoggerService {
     constructor() {
         this.client = new Client({
@@ -20,7 +20,7 @@ class LoggerService {
             console.log(`Logged ::: ${this.client.user.tag}`)
         })
 
-        this.client.login(TOKEN_DISCORD);
+        this.client.login(DISCORD_TOKEN);
 
     }
 
