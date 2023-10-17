@@ -4,7 +4,7 @@ const queueName = ''
 const runProducerDLX = async (queueName) => {
     try {
         const connection = await amqp.connect('amqp://guest:12345@localhost');
-        const channel = connection.createChannel();
+        const channel = await connection.createChannel();
 
         const notificationExchange = 'notificationEx';
         const notiQueue = 'notificationQueueProcess';
@@ -18,7 +18,7 @@ const runProducerDLX = async (queueName) => {
 
         // 2. create Queue
         const queueResult = await channel.assertQueue(notiQueue, {
-            exclusive: true,  //cho phep cac ket noi tuy cap vao cung mot luc hang doi
+            exclusive: false,  //cho phep cac ket noi truy cap vao cung mot luc hang doi
             // durable: true,
             deadLetterExchange: notificationExDLX, // message discarded from the queue will be resent.
             deadLetterRoutingKey: notificationRoutingKeyDLX // 
@@ -28,13 +28,20 @@ const runProducerDLX = async (queueName) => {
         await channel.bindQueue(queueResult.queue, notificationExchange);
         
         //4. send message
-        const msg = 'Send 1 message de test';
-        await channel.sendToQueue(queueName.queue, Buffer.from(msg), {
+        const msg = 'new Product';
+        await channel.sendToQueue(queueResult.queue, Buffer.from(msg), {
             expiration: '10000'
         })
+
+        setTimeout(() => {
+            connection.close()
+            process.exit(0)
+        }, 500)
         
 
     } catch (error) {
        console.log(error) 
     }
 }
+
+runProducerDLX();
