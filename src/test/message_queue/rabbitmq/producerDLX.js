@@ -19,7 +19,7 @@ const runProducerDLX = async (queueName) => {
         // 2. create Queue
         const queueResult = await channel.assertQueue(notiQueue, {
             exclusive: false,  //cho phep cac ket noi truy cap vao cung mot luc hang doi
-            // durable: true,
+            durable: true,
             deadLetterExchange: notificationExDLX, // message discarded from the queue will be resent.
             deadLetterRoutingKey: notificationRoutingKeyDLX // 
         })
@@ -28,9 +28,10 @@ const runProducerDLX = async (queueName) => {
         await channel.bindQueue(queueResult.queue, notificationExchange);
         
         //4. send message
-        const msg = 'new Product';
+        const msg = 'Mot message';
         await channel.sendToQueue(queueResult.queue, Buffer.from(msg), {
-            expiration: '10000'
+            // expiration: '100000',
+            persistent: true
         })
 
         setTimeout(() => {
