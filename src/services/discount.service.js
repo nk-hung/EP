@@ -1,12 +1,12 @@
-const { Types } = require('mongoose');
-const { BadRequestError, NotFoundError } = require('../core/error.response');
-const discount = require('../models/discount.model');
-const { findAllProducts } = require('../models/repositories/product.repo');
+const { Types } = require("mongoose");
+const { BadRequestError, NotFoundError } = require("../core/error.response");
+const discount = require("../models/discount.model");
+const { findAllProducts } = require("../models/repositories/product.repo");
 const {
   getAllDiscountCodesUnselect,
   checkDiscountExists,
-} = require('../models/repositories/discount.repo');
-const { convertStringToObjectId } = require('../utils');
+} = require("../models/repositories/discount.repo");
+const { convertStringToObjectId } = require("../utils");
 /*
     Discount Services
     1- Generator Discount Code [ Shop | Admin ]
@@ -41,7 +41,7 @@ class DiscountService {
     } = payload;
     // check
     if (new Date(start_date) >= new Date(end_date)) {
-      throw new BadRequestError('Start date must be set before end date!!!');
+      throw new BadRequestError("Start date must be set before end date!!!");
     }
 
     // create index for discount code
@@ -53,7 +53,7 @@ class DiscountService {
       .lean();
 
     if (foundDiscount && foundDiscount.discount_is_active) {
-      throw new BadRequestError('Discount exists!');
+      throw new BadRequestError("Discount exists!");
     }
 
     const newDiscount = await discount.create({
@@ -71,7 +71,7 @@ class DiscountService {
       discount_shopId: shopId,
       discount_is_active: is_active,
       discount_applies_to: applies_to,
-      discount_product_ids: applies_to === 'all' ? [] : product_ids,
+      discount_product_ids: applies_to === "all" ? [] : product_ids,
     });
     return newDiscount;
   }
@@ -98,13 +98,13 @@ class DiscountService {
       .lean();
 
     if (!foundDiscount || !foundDiscount.discount_is_active) {
-      throw new NotFoundError('Discount not exists!');
+      throw new NotFoundError("Discount not exists!");
     }
 
     const { discount_applies_to, discount_product_ids } = foundDiscount;
     let products;
 
-    if (discount_applies_to === 'all') {
+    if (discount_applies_to === "all") {
       // get all product
       products = await findAllProducts({
         filter: {
@@ -113,12 +113,12 @@ class DiscountService {
         },
         limit: +limit,
         page: +page,
-        sort: 'ctime',
-        select: ['product_name'],
+        sort: "ctime",
+        select: ["product_name"],
       });
     }
 
-    if (discount_applies_to === 'specific') {
+    if (discount_applies_to === "specific") {
       products = await findAllProducts({
         filter: {
           _id: { $in: discount_product_ids },
@@ -126,8 +126,8 @@ class DiscountService {
         },
         limit: +limit,
         page: +page,
-        sort: 'ctime',
-        select: ['product_name'],
+        sort: "ctime",
+        select: ["product_name"],
       });
     }
   }
@@ -141,7 +141,7 @@ class DiscountService {
         discount_is_active: true,
       },
       model: discount,
-      unSelect: ['__V'],
+      unSelect: ["__V"],
     });
 
     return discounts;
@@ -161,7 +161,7 @@ class DiscountService {
         discount_shopId: convertStringToObjectId(shopId),
       },
     });
-    if (!foundDiscount) throw new NotFoundError('Discount does not exist!');
+    if (!foundDiscount) throw new NotFoundError("Discount does not exist!");
 
     // use destructuring
     const {
@@ -175,12 +175,12 @@ class DiscountService {
       discount_users_used,
       discount_max_uses_per_user,
     } = foundDiscount;
-    console.log('found discount::', foundDiscount);
+    console.log("found discount::", foundDiscount);
     if (!discount_is_active) {
-      throw new NotFoundError('Discount expried!!');
+      throw new NotFoundError("Discount expried!!");
     }
 
-    if (!discount_max_uses) throw new NotFoundError('Discount are out!');
+    if (!discount_max_uses) throw new NotFoundError("Discount are out!");
     // if (
     //   new Date() < new Date(discount_start_date) ||
     //   new Date() > new Date(discount_end_date)
@@ -191,20 +191,20 @@ class DiscountService {
     let totalOrder = 0;
     if (discount_min_order_value > 0) {
       // get total
-      console.log('products::', products);
+      console.log("products::", products);
       totalOrder = products.reduce(
         (acc, product) => acc + product.quantity * product.price,
-        0
+        0,
       );
 
       if (totalOrder < discount_min_order_value)
         throw new NotFoundError(
-          `Discount require a minimun order value of ${discount_min_order_value}`
+          `Discount require a minimun order value of ${discount_min_order_value}`,
         );
     }
     if (discount_max_uses_per_user > 0) {
       const userUseDiscount = discount_users_used.find(
-        (user) => user.userId === userId
+        (user) => user.userId === userId,
       );
       if (userUseDiscount) {
       }
@@ -212,7 +212,7 @@ class DiscountService {
 
     // check xem discount nay la fixed_amount hay
     const amount =
-      discount_type === 'fixed_amount'
+      discount_type === "fixed_amount"
         ? discount_value
         : totalOrder * (discount_value / 100);
     return {

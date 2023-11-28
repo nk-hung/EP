@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-const keytokenModel = require('../models/keytoken.model');
+const keytokenModel = require("../models/keytoken.model");
 
 class KeyTokenService {
   static createKeyToken = async ({
@@ -33,10 +33,10 @@ class KeyTokenService {
       const tokens = await keytokenModel.findOneAndUpdate(
         filter,
         update,
-        options
+        options,
       ); // atomotic in db
 
-      return tokens ? tokens.publicKey : '';
+      return tokens ? tokens.publicKey : "";
     } catch (error) {
       return error;
     }

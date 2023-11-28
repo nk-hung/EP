@@ -1,9 +1,9 @@
-const { BadRequestError } = require('../core/error.response');
-const { getCartById } = require('../models/repositories/cart.repo');
-const { checkProductByServer } = require('../models/repositories/product.repo');
-const { getDiscountAmount } = require('../services/discount.service');
-const { acquireLock, releaseLock } = require('./redis.service');
-const { order } = require('../models/order.model');
+const { BadRequestError } = require("../core/error.response");
+const { getCartById } = require("../models/repositories/cart.repo");
+const { checkProductByServer } = require("../models/repositories/product.repo");
+const { getDiscountAmount } = require("../services/discount.service");
+const { acquireLock, releaseLock } = require("./redis.service");
+const { order } = require("../models/order.model");
 class CheckoutService {
   /*
         {   
@@ -23,9 +23,8 @@ class CheckoutService {
         }
     */
   static async checkoutReview({ cartId, userId, shop_order_ids = [] }) {
-    console.log('check::', { cartId, userId, shop_order_ids });
     const foundCart = await getCartById(cartId);
-    if (!foundCart) throw new BadRequestError('Cart does not exists!');
+    if (!foundCart) throw new BadRequestError("Cart does not exists!");
 
     const checkout_order = {
         totalPrice: 0, // tong tien hang
@@ -44,11 +43,10 @@ class CheckoutService {
       } = shop_order_ids[i];
       // check
       const checkProductServer = await checkProductByServer(item_products);
-      console.log('check::', checkProductServer);
-      if (!checkProductServer) throw new BadRequestError('Order Wrong!!!');
+      if (!checkProductServer) throw new BadRequestError("Order Wrong!!!");
       const checkoutPrice = checkProductServer.reduce(
         (acc, product) => acc + product.quantity * product.price,
-        0
+        0,
       );
       // tong tien truoc khi xu ly
       checkout_order.totalPrice += checkoutPrice;
@@ -92,32 +90,41 @@ class CheckoutService {
   }
 
   // order
-  static async orderByUser ({ 
-    shop_order_ids, cartId, userId, user_address = {}, user_payment = {}
+  static async orderByUser({
+    shop_order_ids,
+    cartId,
+    userId,
+    user_address = {},
+    user_payment = {},
   }) {
-    const { shop_order_ids_new, checkout_order } = await CheckoutService.checkoutReview({
-      cartId, userId, shop_order_ids
-    })
+    const { shop_order_ids_new, checkout_order } =
+      await CheckoutService.checkoutReview({
+        cartId,
+        userId,
+        shop_order_ids,
+      });
 
     // check lai mot lan nua xem vuot ton kho hay ko?
     // get new array Product
-    const products = shop_order_ids_new.flatMap(order => order.item_products)
-    console.log('[1]::', products) 
-    const acquireProduct = []
+    const products = shop_order_ids_new.flatMap((order) => order.item_products);
+    console.log("[1]::", products);
+    const acquireProduct = [];
     // ap dung optimistic Locks(khoa lac quan) de kiem tra
-    // khoa lac quan => chan tat ca duong di cua nhieu luong 
+    // khoa lac quan => chan tat ca duong di cua nhieu luong
     // => chi cho phep 1 luong di vao va lay gia tri xong tra ve => xu ly truong hop ton kho khoa ban
     for (let i = 0; i < products.length; i++) {
       const { productId, quantity } = products[i];
       const keyLock = await acquireLock(productId, quantity, cartId);
-      acquireProduct.push(keyLock ? true: false);
+      acquireProduct.push(keyLock ? true : false);
       if (keyLock) {
-        await releaseLock(keyLock)
+        await releaseLock(keyLock);
       }
     }
     // check lai neu co mot san pham het hang trong kho
     if (acquireProduct.includes(false)) {
-      throw new BadRequestError(' Mot so san pham da duoc cap nhat, vui long quay lai gio hang')
+      throw new BadRequestError(
+        " Mot so san pham da duoc cap nhat, vui long quay lai gio hang",
+      );
     }
 
     const newOrder = order.create({
@@ -125,12 +132,11 @@ class CheckoutService {
       order_checkout: checkout_order,
       order_shipping: user_address,
       order_payment: user_payment,
-      order_products: shop_order_ids_new
-    })
-    
+      order_products: shop_order_ids_new,
+    });
+
     // TH: inset thanh cong => remove product co trong cart
     if (newOrder) {
-      
     }
     return newOrder;
   }
@@ -138,32 +144,22 @@ class CheckoutService {
   /*
     1> Query Orders [Users] 
   */
-  static async getOrderByUser() {
-
-  }
+  static async getOrderByUser() {}
 
   /*
     1> Query Order Using Id [Users]
   */
-  static async getOneOrderByUser() {
-
-  }
+  static async getOneOrderByUser() {}
 
   /*
     1> Cancel Order [Users]
   */
-  static async cancelOrderByUser() {
-
-  }
+  static async cancelOrderByUser() {}
 
   /*
     1> Update Order Status [Shop | Admin] 
   */
-  static async updateOrderStatusByShop() {
-
-  }
-
-  
+  static async updateOrderStatusByShop() {}
 }
 
 module.exports = CheckoutService;

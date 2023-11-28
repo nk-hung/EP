@@ -1,16 +1,16 @@
-const { Notification } = require('../models/notification.model');
+const { Notification } = require("../models/notification.model");
 
 const pushNotiToSystem = async ({
-  type = 'SHOP-001',
+  type = "SHOP-001",
   receiveId = 1,
   senderId = 1,
   options = {},
 }) => {
   let noti_content;
 
-  if (type === 'SHOP-001') {
+  if (type === "SHOP-001") {
     noti_content = `@@@ vừa mới thêm một sản phẩm @@@@`;
-  } else if (type === 'PROMOTION-001') {
+  } else if (type === "PROMOTION-001") {
     noti_content = `@@@ vừa mới thêm một voucher: @@@@`;
   }
 
@@ -25,33 +25,30 @@ const pushNotiToSystem = async ({
   return newNoti;
 };
 
-const listNotiByUser = async ({
-     userId = 1,
-     type = 'ALL',
-     isRead = 0
-}) => {
-    const match = { noti_receiveId: userId }
-    if (type !== 'ALL') {
-        match['noti_type'] = type
-    }
+const listNotiByUser = async ({ userId = 1, type = "ALL", isRead = 0 }) => {
+  const match = { noti_receiveId: userId };
+  if (type !== "ALL") {
+    match["noti_type"] = type;
+  }
 
-    return await Notification.aggregate([
-        {
-            $match: match
-        }, {
-            $project: {
-                noti_type: 1,
-                noti_senderId: 1,
-                noti_receiveId: 1,
-                noti_content: 1,
-                noti_options: 1,
-                createdAt: 1
-            }
-        }
-    ])
-}
+  return await Notification.aggregate([
+    {
+      $match: match,
+    },
+    {
+      $project: {
+        noti_type: 1,
+        noti_senderId: 1,
+        noti_receiveId: 1,
+        noti_content: 1,
+        noti_options: 1,
+        createdAt: 1,
+      },
+    },
+  ]);
+};
 
 module.exports = {
   pushNotiToSystem,
-  listNotiByUser
+  listNotiByUser,
 };
