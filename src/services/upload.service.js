@@ -1,6 +1,24 @@
 const cloudinary = require("../configs/cloudinary.config");
-const { s3 } = require("../configs/aws.config.js");
-// TEST ///
+const { s3, PutObjectCommand } = require("../configs/aws.config.js");
+const { BadRequestError } = require("../core/error.response.js");
+// UPLOAD S3 ///
+
+const uploadImageFromLocalS3 = async ({ file }) => {
+  try {
+    const randomName = crypto.randomBytes(16).toString("hex");
+    const command = new PutObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      ContentType: "image/png",
+      Body: file.buffer,
+      Key: randomName,
+    });
+
+    const result = await s3.send(command);
+  } catch (error) {
+    console.error("Error when upload S3:::", error);
+  }
+};
+// END /////////
 
 // 1. Upload image from url
 const uploadImageFromUrl = async () => {
@@ -17,4 +35,5 @@ const uploadImageFromUrl = async () => {
 
 module.exports = {
   uploadImageFromUrl,
+  uploadImageFromLocalS3,
 };
