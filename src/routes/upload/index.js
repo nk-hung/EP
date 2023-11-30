@@ -5,12 +5,12 @@ const { uploadDisk } = require("../../configs/config.multer");
 
 const router = express.Router();
 
-// router.get('/url',asyncHandler(uploadImageFromUrl));
 router.post("/url", asyncHandler(uploadController.uploadImageFromUrl));
 router.post(
   "/thumb",
   uploadDisk.single("file"),
   asyncHandler(uploadController.uploadThumb),
 );
+router.post("/image/s3", asyncHandler(uploadController.uploadImageS3Client));
 
 module.exports = router;
