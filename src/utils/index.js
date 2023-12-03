@@ -46,6 +46,8 @@ const updateNestedObjectParser = (obj) => {
 
 const convertStringToObjectId = (id) => new Types.ObjectId(id);
 
+const generateRandomName = () => crypto.randomBytes(16).toString('hex');
+
 module.exports = {
   getInfoData,
   generateToken,
@@ -54,4 +56,5 @@ module.exports = {
   removeUndefinedObject,
   updateNestedObjectParser,
   convertStringToObjectId,
+  generateRandomName
 };

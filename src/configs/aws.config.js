@@ -1,4 +1,9 @@
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} = require("@aws-sdk/client-s3");
 
 const config = {
   region: process.env.AWS_BUCKET_REGION,
@@ -8,7 +13,11 @@ const config = {
   },
 };
 
+const s3 = new S3Client(config);
+
 module.exports = {
-  s3: new S3Client(config),
+  s3,
   PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
 };

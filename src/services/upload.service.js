@@ -1,19 +1,43 @@
 const cloudinary = require("../configs/cloudinary.config");
-const { s3, PutObjectCommand } = require("../configs/aws.config.js");
+const {
+  s3,
+  PutObjectCommand,
+  GetObjectCommand,
+} = require("../configs/aws.config.js");
 const { BadRequestError } = require("../core/error.response.js");
-// UPLOAD S3 ///
+const { generateRandomName } = require("../utils/index.js");
+// const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { getSignedUrl } = require("@aws-sdk/cloudfront-signer");
+const moment = require("moment");
 
 const uploadImageFromLocalS3 = async ({ file }) => {
   try {
-    const randomName = crypto.randomBytes(16).toString("hex");
+    const randomName = generateRandomName();
+
     const command = new PutObjectCommand({
       Bucket: process.env.AWS_BUCKET_NAME,
-      ContentType: "image/png",
+      ContentType: "image/jpeg",
       Body: file.buffer,
       Key: randomName,
     });
-
     const result = await s3.send(command);
+
+    const s3path = new GetObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: randomName,
+    });
+    // await getSignedUrl(s3, s3path, { expiresIn: 3600 });
+    const signedUrl = getSignedUrl({
+      url: `${process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN}/${randomName}`,
+      privateKey: process.env.CLOUDFRONT_PRIVATE_KEY,
+      keyPairId: process.env.CLOUDFRONT_PUBLIC_KEY,
+      dateLessThan: moment().add(3, "days").format("YYYY-MM-DD"),
+    });
+    // return {
+    //   url: `${process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN}/${randomName}`,
+    //   result,
+    // };
+    return signedUrl;
   } catch (error) {
     console.error("Error when upload S3:::", error);
   }
@@ -52,7 +76,6 @@ const uploadImageFromLocal = async ({
 };
 
 // 3. Upload multi image
-const uploadMulti = async(files);
 module.exports = {
   uploadImageFromUrl,
   uploadImageFromLocal,

@@ -3,6 +3,7 @@ const { SuccessResponse } = require("../core/success.response");
 const {
   uploadImageFromUrl,
   uploadImageFromLocal,
+  uploadImageFromLocalS3,
 } = require("../services/upload.service");
 
 class UploadService {
@@ -21,6 +22,16 @@ class UploadService {
     new SuccessResponse({
       message: "Upload From Local Success",
       metadata: await uploadImageFromLocal({ path: file.path }),
+    }).send(res);
+  };
+
+  uploadImageS3Client = async (req, res) => {
+    const { file } = req;
+    if (!file) throw new BadRequestError("File Missing");
+
+    new SuccessResponse({
+      message: "Upload Image From S3 Success",
+      metadata: await uploadImageFromLocalS3({ file }),
     }).send(res);
   };
 }

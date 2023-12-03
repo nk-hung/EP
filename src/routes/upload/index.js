@@ -1,7 +1,7 @@
 const express = require("express");
 const asyncHandler = require("../../helpers/asyncHandler");
 const uploadController = require("../../controllers/upload.controller");
-const { uploadDisk } = require("../../configs/config.multer");
+const { uploadDisk, uploadMemory } = require("../../configs/config.multer");
 
 const router = express.Router();
 
@@ -11,6 +11,10 @@ router.post(
   uploadDisk.single("file"),
   asyncHandler(uploadController.uploadThumb),
 );
-router.post("/image/s3", asyncHandler(uploadController.uploadImageS3Client));
+router.post(
+  "/image/s3",
+  uploadMemory.single("file"),
+  asyncHandler(uploadController.uploadImageS3Client),
+);
 
 module.exports = router;
