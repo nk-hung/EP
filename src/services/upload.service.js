@@ -21,6 +21,7 @@ const uploadImageFromLocalS3 = async ({ file }) => {
       Key: randomName,
     });
     const result = await s3.send(command);
+    console.log("result::", result);
 
     const s3path = new GetObjectCommand({
       Bucket: process.env.AWS_BUCKET_NAME,
@@ -33,11 +34,11 @@ const uploadImageFromLocalS3 = async ({ file }) => {
       keyPairId: process.env.CLOUDFRONT_PUBLIC_KEY,
       dateLessThan: moment().add(3, "days").format("YYYY-MM-DD"),
     });
-    // return {
-    //   url: `${process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN}/${randomName}`,
-    //   result,
-    // };
-    return signedUrl;
+
+    return {
+      url: signedUrl,
+      result,
+    };
   } catch (error) {
     console.error("Error when upload S3:::", error);
   }
